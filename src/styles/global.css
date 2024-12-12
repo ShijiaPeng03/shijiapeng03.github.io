@@ -1,0 +1,11 @@
+.time-line-container>div:last-child .education__time>.education__line {
+    display: none;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }

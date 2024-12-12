@@ -1,0 +1,185 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import HorizontalCard from "../components/HorizontalCard.astro";
+import { getCollection } from "astro:content";
+import createSlug from "../lib/createSlug"
+import TimeLineElement from "../components/cv/TimeLine.astro";
+
+const TRACKING_ID = import.meta.env.PUBLIC_TRACKING_ID;
+const gaSrc = `https://www.googletagmanager.com/gtag/js?id=${TRACKING_ID}`;
+
+const posts = (await getCollection("blog")).sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const last_posts = posts.slice(0, 3);
+---
+
+<BaseLayout sideBarActiveItemID="home">
+  <div class="pb-12 mt-5" id="profile">
+    <div class="text-2xl py-1">Welcome to my personal Website! 👋</div>
+    <div class="text-5xl font-bold">I'm Shijia Peng (彭时佳)</div>
+    <div class="text-3xl py-3 font-bold">a 4th-year Undergraduate Student</div>
+    <div class="text-2xl py-3 font-bold">@<a href="https://en.szu.edu.cn/" class="text-blue-500">Shenzhen University</a>, majoring in Mechanical Design Manufacturing and Automation</div>
+    <div class="py-2">
+      <text class="text-lg">
+
+        I am currently an intern at <a href="https://opendrivelab.com/" class="text-blue-500">OpenDriveLab</a>
+        (affiliated with <a href="https://www.shlab.org.cn/" class="text-blue-500">Shanghai AI Lab</a>), engaged 
+        in robotics research under the guidance of Professor <a href="https://lihongyang.info/" class="text-blue-500">Prof.Hongyang Li </a>,
+        and I will obtain my bachelor's degree in the summer of 2025 from Shenzhen University.
+
+        <br><br>My research areas include robotics, computer vision, reinforcement learning, and robot simulation.
+
+      </text>
+    </div>
+    <div class="mt-8">
+      <a class="btn" href="jiagedainifei@gmail.com" target="_blank"> Let's connect!</a>
+      <a href="https://scholar.google.com/citations?user=T3lq19kAAAAJ&hl=en&oi=ao" target="_blank" class="btn btn-outline ml-5">
+        Google Scholar
+      </a>
+      <a href="https://github.com/ShijiaPeng03" target="_blank" class="btn btn-outline ml-5">
+        GitHub
+      </a>
+      <a href="https://www.xiaohongshu.com/user/profile/5d2ff1090000000012035ac6?xsec_token=AB8QK18eY0DWPlF6irpX9mKeOMoFnBbA392sEIuUs3PYo%3D&xsec_source=pc_search" target="_blank" class="btn btn-outline ml-5">
+        小红书
+      </a>
+    </div>
+  </div>
+
+  <div id="news">
+    <div class="text-3xl w-full font-bold mb-2">News 📰</div>
+  </div>
+
+  <div class="overflow-y-auto h-48 mb-10 bg-white rounded-lg p-4">
+    <ul class="list-disc list-inside space-y-2">
+      <li><span class="font-bold">[2024.11-now]</span> Intern at <a href="https://opendrivelab.com/" class="text-blue-500">OpenDriveLab</a>
+      under the guidance of Professor <a href="https://lihongyang.info/" class="text-blue-500">Prof.Hongyang Li </a></li>
+      <li><span class="font-bold">[2024.09]</span> RoboTwin(early-version) received the <span class="text-red-500"><b>Best Paper Award</b></span> 🏆 at the ECCV Workshop!</li>
+      <li><span class="font-bold">[2024.05-2024.11]</span> Intern at <a href="https://www.agilex.ai/" class="text-blue-500">AgileX Robot</a>, engaged in robotics research </li>
+      <li><span class="font-bold">[2023.08]</span> RoboCom Robot Development Competition (RAICOM) Multiple awards</br> (including <span class="text-red-500"><b>National Runner-up</b></span> 🏆) With Tianxing Chen, 
+        Beiqi Wang, Weili Li and so on .Supervised by <a href="https://csse.szu.edu.cn/pages/user/index?id=1130" class="text-blue-500">Dr.Jie Chen </a></li>    
+      
+      
+    </ul>
+  </div>
+  
+  <div id="publications">
+    <div class="text-3xl w-full font-bold mb-2">Publications 📄</div>
+  </div>
+
+  <HorizontalCard
+    title="	RoboTwin: Dual-Arm Robot Benchmark with Generative Digital Twins (early version)"
+    img="/2024-RoboTwin.png"
+    desc="<a href='https://yaomarkmu.github.io/' class='text-blue-500'>Yao Mu</a>*, <a href='https://tianxingchen.github.io/' class='text-blue-500'>Tianxing Chen</a>*, <u><b>Shijia Peng*</u></b>, Zanxin Chen*, Zeyu Gao, Yude Zou, Lunkai Lin, Zhiqiang Xie and <a href='http://luoping.me/' class='text-blue-500'>Ping Luo</a>†"
+    url="https://robotwin-benchmark.github.io/early-version/"
+    badge="Best Paper"
+    target="ECCV Workshop 2024, MAAS"
+  />
+  <HorizontalCard
+    title="	RoboTwin: Dual-Arm Robot Benchmark with Generative Digital Twins"
+    img="/2024-RoboTwin.png"
+    desc="<a href='https://yaomarkmu.github.io/' class='text-blue-500'>Yao Mu</a>*, <a href='https://tianxingchen.github.io/' class='text-blue-500'>Tianxing Chen</a>*, Zanxin Chen*, <u><b>Shijia Peng*</u></b>, Zeyu Gao, Yude Zou, Lunkai Lin, Zhiqiang Xie and <a href='http://luoping.me/' class='text-blue-500'>Ping Luo</a>†"
+    url="https://robotwin-benchmark.github.io/early-version/"
+    badge="Under Review 2024"
+    target="CVPR 2025"
+  />
+  
+  <HorizontalCard
+    title="G3Flow: Generative 3D Semantic Flow for Pose-aware and Generalizable Object Manipulation"
+    img="/2024-G3Flow.png"
+    desc="<a href='https://tianxingchen.github.io/' class='text-blue-500'>Tianxing Chen</a>*, <a href='https://yaomarkmu.github.io/' class='text-blue-500'>Yao Mu</a>*, Zhixuan Liang*, Zanxin Chen,<u><b>Shijia Peng</u></b>, Qiangyu Chen, Mingkun Xu, Ruizhen Hu, Hongyuan Zhang, Xuelong Li and <a href='http://luoping.me/' class='text-blue-500'>Ping Luo</a>†"
+    url="https://tianxingchen.github.io/G3Flow/"
+    badge="Under Review 2024"
+    target="CVPR 2025"
+  />
+
+  <!-- <div class="divider my-0"></div> -->
+
+  <!-- <div id="projects">
+    <div class="text-3xl w-full font-bold mb-5 mt-10">Projects 🛠️</div>
+  </div>
+
+  <HorizontalCard
+  title="Kaiwu AI: Multi-agent Reinforcement Learning Game AI"
+  img="/kaiwu.png"
+  desc="Honered with <b>4/172</b> in the semi-final and <b>5/8</b> in the final \
+  at Tencent Kaiwu AI National Open Competition"
+  url="https://mp.weixin.qq.com/s/W5pMIOqsG8DTEdR6mYTlRQ"
+  target="Dec. 2023, Project leader & 4-people Team"
+  />
+  <div class="divider my-0"></div>
+
+  <HorizontalCard
+  title="Materia Medica Drugstore: 2.5D Role-playing Game"
+  img="/bcyp.png"
+  desc="Honored with the <b>Highlight Work</b> and <b>National First Prize</b> \
+  in Chinese Collegiate Computing Competition (4C) and the \
+  <b>National Third Prize</b> in National College Digital Art&Design Awards (NCDA)"
+  url="https://mp.weixin.qq.com/s/t8Z0j3rk0tmrz0ERPjmtUw"
+  target="Aug. 2023, Major designer & Programmer & 5-people Team"
+  /> -->
+  <!-- <div class="divider my-0"></div> -->
+
+  <div id="education">
+    <div class="text-3xl w-full font-bold mb-5 mt-10">Education 🎓</div>
+  </div>
+  <div class="time-line-container grid gap-4 mb-10">
+    <TimeLineElement
+      title="Puning Erzhong High School"
+      subtitle="[2018.09 - 2021.06], [Guangdong, China]"
+      desc="Excellent student of Huizhou"
+    />
+    <TimeLineElement
+      title="Shenzhen University"
+      subtitle="[2021.09 - 2025.06], [Guangdong, China]"
+      desc=" "
+    />
+
+  </div>
+
+  <!-- <div id="honors">
+    <div class="text-3xl w-full font-bold mb-5 mt-10">Honors 🏆</div>
+  </div>
+  <ul class="list-disc mx-6 mb-10 grid gap-2">
+    <li>
+      <a target="_blank">2024, <b>Peng Cheng Scholarship</b></a>
+    </li>
+    <li>
+      <a target="_blank">2023, <b>Chinese National Scholarship</b></a>
+    </li>
+    <li>
+      <a target="_blank">2023, <b>SZU Litchi Park Star Scholarship</b></a>
+    </li>
+  </ul> -->
+
+  <!-- <div id="misc">
+    <div class="text-3xl w-full font-bold mb-5 mt-10">Misc. 🎉</div>
+  </div> -->
+  <!-- <ul class="list-disc mx-6 mb-10 grid gap-2">
+    <li>
+      <a target="_blank"><b>Music 🎧 :</b> 
+      <a href="https://music.apple.com/cn/artist/%E8%AE%B8%E5%B5%A9/601736777" target="_blank"
+      class="text-blue-500 hover:underline">XU Song</a> 🌹, 
+      <a href="https://music.apple.com/cn/artist/%E9%99%B6%E5%96%86/16789930" target="_blank"
+      class="text-blue-500 hover:underline">David Tao</a> 🦋
+      </a>
+    </li>
+    <li>
+      <a target="_blank"><b>Stand-Up Comedy 🎤 :</b>  
+      <a href="https://www.bilibili.com/video/BV1DN411j7xo" target="_blank"
+      class="text-blue-500 hover:underline">LIU Yang, <em>Icarus</em></a> 🧚🏻‍♂,
+      <a href="https://www.youtube.com/watch?v=6SsbS3gOSwA" target="_blank"
+      class="text-blue-500 hover:underline">FU Hang</a> 🐵, 
+      </a>
+      <a href="https://www.youtube.com/watch?v=0QZ26VTCkJo" target="_blank"
+      class="text-blue-500 hover:underline">WANG Mian</a> 🎸
+      </a>
+    </li>
+    <li>
+      <a target="_blank"><b>Electronic Games 🎮 :</b> Minecraft 💎⛏️, Kirby ✨, Zelda 🗡️</a>
+    </li>
+    <li>
+      <a target="_blank"><b>Sports 🏃‍♂️ : </b>Basketball 🏀, Swimming 🏊‍♂️</a>
+    </li>
+  </ul> -->
+
+</BaseLayout>
