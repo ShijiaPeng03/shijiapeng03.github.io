@@ -1,0 +1,452 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout sideBarActiveItemID="ip" title="Visitor Analytics" description="Website visitor tracking and analytics">
+  <div class="pb-12 mt-5">
+    <div class="text-4xl font-bold mb-6">Visitor Analytics</div>
+
+    <!-- Current Visitor Info -->
+    <div class="card bg-base-200 shadow-lg mb-8">
+      <div class="card-body">
+        <h2 class="card-title text-2xl mb-4">Your Info</h2>
+        <div id="loading-info" class="flex items-center gap-2">
+          <span class="loading loading-spinner loading-md"></span>
+          <span>Detecting your info...</span>
+        </div>
+        <div id="visitor-info" class="hidden">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="stat bg-base-100 rounded-lg">
+              <div class="stat-title">IP Address</div>
+              <div class="stat-value text-lg" id="v-ip">-</div>
+            </div>
+            <div class="stat bg-base-100 rounded-lg">
+              <div class="stat-title">Location</div>
+              <div class="stat-value text-lg" id="v-location">-</div>
+            </div>
+            <div class="stat bg-base-100 rounded-lg">
+              <div class="stat-title">ISP / Org</div>
+              <div class="stat-value text-lg" id="v-isp">-</div>
+            </div>
+            <div class="stat bg-base-100 rounded-lg">
+              <div class="stat-title">Timezone</div>
+              <div class="stat-value text-lg" id="v-timezone">-</div>
+            </div>
+          </div>
+          <div class="mt-4 p-4 bg-base-100 rounded-lg">
+            <div class="font-semibold mb-2">Map</div>
+            <div id="v-map" class="w-full h-[200px] rounded-lg overflow-hidden bg-base-300 flex items-center justify-center">
+              <span class="text-sm opacity-50">Loading map...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overview Stats -->
+    <div class="card bg-base-200 shadow-lg mb-8">
+      <div class="card-body">
+        <h2 class="card-title text-2xl mb-4">Overview</h2>
+        <div id="loading-stats" class="flex items-center gap-2">
+          <span class="loading loading-spinner loading-md"></span>
+          <span>Loading statistics...</span>
+        </div>
+        <div id="overview-stats" class="hidden">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="stat bg-base-100 rounded-lg">
+              <div class="stat-title">Total Visits</div>
+              <div class="stat-value" id="s-total">0</div>
+            </div>
+            <div class="stat bg-base-100 rounded-lg">
+              <div class="stat-title">Unique Visitors</div>
+              <div class="stat-value" id="s-unique">0</div>
+            </div>
+            <div class="stat bg-base-100 rounded-lg">
+              <div class="stat-title">Countries</div>
+              <div class="stat-value" id="s-countries">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visit Chart -->
+    <div class="card bg-base-200 shadow-lg mb-8">
+      <div class="card-body">
+        <h2 class="card-title text-2xl mb-4">Visits Over Time (Last 30 Days)</h2>
+        <div class="bg-base-100 rounded-lg p-4">
+          <canvas id="visits-chart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Country Distribution -->
+    <div class="card bg-base-200 shadow-lg mb-8">
+      <div class="card-body">
+        <h2 class="card-title text-2xl mb-4">Visitor Distribution by Country</h2>
+        <div class="bg-base-100 rounded-lg p-4">
+          <canvas id="country-chart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Visitors Table -->
+    <div class="card bg-base-200 shadow-lg mb-8">
+      <div class="card-body">
+        <h2 class="card-title text-2xl mb-4">Recent Visitors</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full" id="visitors-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>IP</th>
+                <th>Location</th>
+                <th>ISP</th>
+                <th>Visit Time</th>
+                <th>Visits</th>
+              </tr>
+            </thead>
+            <tbody id="visitors-tbody">
+              <tr>
+                <td colspan="6" class="text-center">
+                  <span class="loading loading-spinner loading-md"></span>
+                  Loading...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firebase Setup Notice -->
+    <div id="setup-notice" class="hidden">
+      <div class="alert alert-warning">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        <span>Firebase is not configured. Historical visitor tracking is disabled. See the source code for setup instructions.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart.js CDN -->
+  <script is:inline src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+  <!-- Firebase CDN -->
+  <script is:inline src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script is:inline src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+  <script is:inline>
+    // ============================================================
+    // Firebase Configuration
+    // To enable persistent visitor tracking:
+    // 1. Go to https://console.firebase.google.com/
+    // 2. Create a new project (free tier is sufficient)
+    // 3. Go to Realtime Database > Create Database
+    // 4. Set rules to: { "rules": { "visitors": { ".read": true, ".write": true } } }
+    // 5. Fill in the config below with your project's values
+    // ============================================================
+    const FIREBASE_CONFIG = {
+      apiKey: "",
+      authDomain: "",
+      databaseURL: "",
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
+    };
+
+    const firebaseEnabled = FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL;
+    let db = null;
+
+    if (firebaseEnabled) {
+      const app = firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.database();
+    }
+
+    // Fetch current visitor's IP info
+    async function fetchVisitorInfo() {
+      try {
+        const res = await fetch("http://ip-api.com/json/?fields=status,message,country,countryCode,regionName,city,zip,lat,lon,timezone,isp,org,as,query");
+        const data = await res.json();
+        if (data.status === "success") {
+          return data;
+        }
+      } catch (e) {
+        console.warn("ip-api.com failed, trying fallback...");
+      }
+
+      // Fallback to ipapi.co
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+        return {
+          query: data.ip,
+          country: data.country_name,
+          countryCode: data.country_code,
+          regionName: data.region,
+          city: data.city,
+          zip: data.postal,
+          lat: data.latitude,
+          lon: data.longitude,
+          timezone: data.timezone,
+          isp: data.org,
+          org: data.org,
+          as: data.asn
+        };
+      } catch (e) {
+        console.error("All IP APIs failed", e);
+        return null;
+      }
+    }
+
+    // Display current visitor info
+    function displayVisitorInfo(info) {
+      document.getElementById("loading-info").classList.add("hidden");
+      document.getElementById("visitor-info").classList.remove("hidden");
+
+      document.getElementById("v-ip").textContent = info.query;
+      document.getElementById("v-location").textContent = `${info.city}, ${info.regionName}, ${info.country}`;
+      document.getElementById("v-isp").textContent = info.isp || info.org || "-";
+      document.getElementById("v-timezone").textContent = info.timezone || "-";
+
+      // Show map using OpenStreetMap embed
+      if (info.lat && info.lon) {
+        const mapDiv = document.getElementById("v-map");
+        mapDiv.innerHTML = `<iframe width="100%" height="200" frameborder="0" scrolling="no" src="https://www.openstreetmap.org/export/embed.html?bbox=${info.lon - 0.5},${info.lat - 0.5},${info.lon + 0.5},${info.lat + 0.5}&layer=mapnik&marker=${info.lat},${info.lon}" style="border-radius:8px;"></iframe>`;
+      }
+    }
+
+    // Record visit to Firebase
+    async function recordVisit(info) {
+      if (!firebaseEnabled || !info) return;
+
+      const maskedIP = info.query.replace(/\.\d+$/, ".***");
+      const visitData = {
+        ip: maskedIP,
+        fullIP: info.query,
+        country: info.country || "Unknown",
+        countryCode: info.countryCode || "??",
+        region: info.regionName || "",
+        city: info.city || "",
+        isp: info.isp || info.org || "",
+        timezone: info.timezone || "",
+        lat: info.lat || 0,
+        lon: info.lon || 0,
+        timestamp: Date.now(),
+        visitTime: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        page: document.referrer || window.location.origin
+      };
+
+      // Use IP as key (replace dots with underscores for Firebase key)
+      const ipKey = info.query.replace(/\./g, "_");
+
+      try {
+        // Update visit count for this IP
+        const ref = db.ref("visitors/" + ipKey);
+        const snapshot = await ref.once("value");
+        const existing = snapshot.val();
+
+        if (existing) {
+          await ref.update({
+            visitCount: (existing.visitCount || 1) + 1,
+            lastVisit: Date.now(),
+            lastVisitTime: new Date().toISOString()
+          });
+        } else {
+          await ref.set({
+            ...visitData,
+            visitCount: 1,
+            firstVisit: Date.now(),
+            lastVisit: Date.now(),
+            lastVisitTime: new Date().toISOString()
+          });
+        }
+
+        // Also log each visit in a timeline
+        await db.ref("visits").push({
+          ip: maskedIP,
+          country: info.country,
+          countryCode: info.countryCode,
+          city: info.city,
+          timestamp: Date.now()
+        });
+      } catch (e) {
+        console.error("Failed to record visit:", e);
+      }
+    }
+
+    // Load and display statistics
+    async function loadStatistics() {
+      if (!firebaseEnabled) {
+        document.getElementById("loading-stats").classList.add("hidden");
+        document.getElementById("setup-notice").classList.remove("hidden");
+        document.getElementById("visitors-tbody").innerHTML = `<tr><td colspan="6" class="text-center opacity-50">Firebase not configured</td></tr>`;
+        renderEmptyCharts();
+        return;
+      }
+
+      try {
+        // Load all visitors
+        const visitorsSnap = await db.ref("visitors").orderByChild("lastVisit").once("value");
+        const visitors = [];
+        visitorsSnap.forEach(child => {
+          visitors.push({ key: child.key, ...child.val() });
+        });
+        visitors.reverse(); // Most recent first
+
+        // Load visit timeline
+        const visitsSnap = await db.ref("visits").orderByChild("timestamp").once("value");
+        const visits = [];
+        visitsSnap.forEach(child => {
+          visits.push(child.val());
+        });
+
+        // Overview stats
+        const totalVisits = visits.length;
+        const uniqueVisitors = visitors.length;
+        const countries = new Set(visitors.map(v => v.country)).size;
+
+        document.getElementById("loading-stats").classList.add("hidden");
+        document.getElementById("overview-stats").classList.remove("hidden");
+        document.getElementById("s-total").textContent = totalVisits;
+        document.getElementById("s-unique").textContent = uniqueVisitors;
+        document.getElementById("s-countries").textContent = countries;
+
+        // Render table (show last 100)
+        renderVisitorsTable(visitors.slice(0, 100));
+
+        // Render charts
+        renderVisitsChart(visits);
+        renderCountryChart(visitors);
+      } catch (e) {
+        console.error("Failed to load statistics:", e);
+        document.getElementById("loading-stats").innerHTML = `<span class="text-error">Failed to load statistics</span>`;
+      }
+    }
+
+    function renderVisitorsTable(visitors) {
+      const tbody = document.getElementById("visitors-tbody");
+      if (visitors.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center opacity-50">No visitors yet</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = visitors.map((v, i) => {
+        const flag = v.countryCode ? getFlagEmoji(v.countryCode) : "";
+        const time = v.lastVisitTime ? new Date(v.lastVisitTime).toLocaleString() : "-";
+        return `<tr>
+          <td>${i + 1}</td>
+          <td><code class="text-sm">${v.ip || v.fullIP || "-"}</code></td>
+          <td>${flag} ${v.city ? v.city + ", " : ""}${v.country || "-"}</td>
+          <td class="text-sm">${v.isp || "-"}</td>
+          <td class="text-sm">${time}</td>
+          <td><span class="badge badge-primary">${v.visitCount || 1}</span></td>
+        </tr>`;
+      }).join("");
+    }
+
+    function getFlagEmoji(countryCode) {
+      const codePoints = countryCode.toUpperCase().split("").map(c => 0x1F1E6 + c.charCodeAt(0) - 65);
+      return String.fromCodePoint(...codePoints);
+    }
+
+    function renderVisitsChart(visits) {
+      const canvas = document.getElementById("visits-chart");
+      const ctx = canvas.getContext("2d");
+
+      // Group by date (last 30 days)
+      const now = Date.now();
+      const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+      const dailyCounts = {};
+
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(now - (29 - i) * 24 * 60 * 60 * 1000);
+        const key = d.toISOString().split("T")[0];
+        dailyCounts[key] = 0;
+      }
+
+      visits.filter(v => v.timestamp >= thirtyDaysAgo).forEach(v => {
+        const key = new Date(v.timestamp).toISOString().split("T")[0];
+        if (dailyCounts[key] !== undefined) dailyCounts[key]++;
+      });
+
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: Object.keys(dailyCounts).map(d => d.slice(5)),
+          datasets: [{
+            label: "Visits",
+            data: Object.values(dailyCounts),
+            backgroundColor: "rgba(59, 130, 246, 0.5)",
+            borderColor: "rgba(59, 130, 246, 1)",
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function renderCountryChart(visitors) {
+      const canvas = document.getElementById("country-chart");
+      const ctx = canvas.getContext("2d");
+
+      const countryMap = {};
+      visitors.forEach(v => {
+        const c = v.country || "Unknown";
+        countryMap[c] = (countryMap[c] || 0) + (v.visitCount || 1);
+      });
+
+      const sorted = Object.entries(countryMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      const colors = [
+        "#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6",
+        "#ec4899", "#06b6d4", "#84cc16", "#f97316", "#6366f1"
+      ];
+
+      new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: sorted.map(([c]) => c),
+          datasets: [{
+            data: sorted.map(([, n]) => n),
+            backgroundColor: colors.slice(0, sorted.length)
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: "right" } }
+        }
+      });
+    }
+
+    function renderEmptyCharts() {
+      const charts = ["visits-chart", "country-chart"];
+      charts.forEach(id => {
+        const ctx = document.getElementById(id).getContext("2d");
+        new Chart(ctx, {
+          type: id === "visits-chart" ? "bar" : "doughnut",
+          data: { labels: ["No data"], datasets: [{ data: [0], backgroundColor: ["rgba(200,200,200,0.3)"] }] },
+          options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+      });
+    }
+
+    // Main
+    (async function() {
+      const info = await fetchVisitorInfo();
+      if (info) {
+        displayVisitorInfo(info);
+        await recordVisit(info);
+      } else {
+        document.getElementById("loading-info").innerHTML = `<span class="text-error">Could not detect your IP info</span>`;
+      }
+      await loadStatistics();
+    })();
+  </script>
+</BaseLayout>
