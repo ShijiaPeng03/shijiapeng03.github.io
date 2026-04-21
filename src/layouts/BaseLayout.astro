@@ -70,7 +70,7 @@ const {
             var ref = db.ref("visitors/" + ipKey);
             ref.once("value").then(function(snap) {
               var now = Date.now();
-              var page = location.pathname;
+              var page = location.pathname.replace(/\//g, "|") || "|";
               if (snap.exists()) {
                 var d = snap.val();
                 var pages = d.pages || {};
@@ -79,7 +79,7 @@ const {
               } else {
                 var pages = {};
                 pages[page] = 1;
-                ref.set({ ip: info.query, country: info.country, countryCode: info.countryCode, region: info.regionName, city: info.city, isp: info.isp, timezone: info.timezone, lat: info.lat, lon: info.lon, visitCount: 1, firstVisit: now, lastVisit: now, lastVisitTime: new Date().toISOString(), lastPage: page, pages: pages });
+                ref.set({ ip: info.query, country: info.country, countryCode: info.countryCode, region: info.regionName, city: info.city, isp: info.isp, timezone: info.timezone, lat: info.lat, lon: info.lon, visitCount: 1, firstVisit: now, lastVisit: now, lastVisitTime: new Date().toISOString(), lastPage: location.pathname, pages: pages });
               }
             });
             db.ref("visits").push({ ip: info.query, country: info.country, countryCode: info.countryCode, city: info.city, page: location.pathname, timestamp: Date.now() });
