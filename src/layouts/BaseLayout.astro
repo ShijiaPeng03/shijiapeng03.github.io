@@ -22,6 +22,8 @@ const {
   <head>
     <BaseHead title={title} description={description} image={image} , ogType={ogType} />
     {TRANSITION_API && <ViewTransitions />}
+    <script is:inline src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script is:inline src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <script type="text/partytown" async src="https://www.googletagmanager.com/gtag/js?id=G-QKMYDZL4BL"/>
     <script type="text/partytown">
       window.dataLayer = window.dataLayer || [];
@@ -47,24 +49,24 @@ const {
       {includeSidebar && <SideBar sideBarActiveItemID={sideBarActiveItemID} />}
     </div>
     <!-- Visitor Tracking -->
-    <script is:inline src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script is:inline src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <script is:inline>
     (function() {
       if (window.__visitorTracked) return;
       window.__visitorTracked = true;
       try {
-        var app = firebase.initializeApp({
-          apiKey: "AIzaSyCvX1zPCw8bIlHfA2FxicKgjaZtrBkH2Pg",
-          databaseURL: "https://test-shijia-default-rtdb.firebaseio.com",
-          projectId: "test-shijia"
-        });
+        if (!firebase.apps.length) {
+          firebase.initializeApp({
+            apiKey: "AIzaSyCvX1zPCw8bIlHfA2FxicKgjaZtrBkH2Pg",
+            databaseURL: "https://test-shijia-default-rtdb.firebaseio.com",
+            projectId: "test-shijia"
+          });
+        }
         var db = firebase.database();
-        fetch("http://ip-api.com/json/?fields=status,country,countryCode,regionName,city,lat,lon,timezone,isp,org,query")
+        fetch("https://ipapi.co/json/")
           .then(function(r) { return r.json(); })
-          .then(function(info) {
-            if (info.status !== "success") return;
-            var ipKey = info.query.replace(/\./g, "_");
+          .then(function(data) {
+            var info = { query: data.ip, country: data.country_name, countryCode: data.country_code, regionName: data.region, city: data.city, isp: data.org, timezone: data.timezone, lat: data.latitude, lon: data.longitude };
+            var ipKey = info.query.replace(/[\.\:]/g, "_");
             var ref = db.ref("visitors/" + ipKey);
             ref.once("value").then(function(snap) {
               var now = Date.now();
@@ -77,7 +79,7 @@ const {
               } else {
                 var pages = {};
                 pages[page] = 1;
-                ref.set({ ip: info.query, country: info.country, countryCode: info.countryCode, region: info.regionName, city: info.city, isp: info.isp || info.org, timezone: info.timezone, lat: info.lat, lon: info.lon, visitCount: 1, firstVisit: now, lastVisit: now, lastVisitTime: new Date().toISOString(), lastPage: page, pages: pages });
+                ref.set({ ip: info.query, country: info.country, countryCode: info.countryCode, region: info.regionName, city: info.city, isp: info.isp, timezone: info.timezone, lat: info.lat, lon: info.lon, visitCount: 1, firstVisit: now, lastVisit: now, lastVisitTime: new Date().toISOString(), lastPage: page, pages: pages });
               }
             });
             db.ref("visits").push({ ip: info.query, country: info.country, countryCode: info.countryCode, city: info.city, page: location.pathname, timestamp: Date.now() });

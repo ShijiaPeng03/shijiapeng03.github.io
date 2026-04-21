@@ -85,6 +85,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   <script is:inline>
   (function() {
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey: "AIzaSyCvX1zPCw8bIlHfA2FxicKgjaZtrBkH2Pg",
+        databaseURL: "https://test-shijia-default-rtdb.firebaseio.com",
+        projectId: "test-shijia"
+      });
+    }
     var db = firebase.database();
 
     function flag(cc) {
