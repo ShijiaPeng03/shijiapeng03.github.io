@@ -46,5 +46,44 @@ const {
       </div>
       {includeSidebar && <SideBar sideBarActiveItemID={sideBarActiveItemID} />}
     </div>
+    <!-- Visitor Tracking -->
+    <script is:inline src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script is:inline src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script is:inline>
+    (function() {
+      if (window.__visitorTracked) return;
+      window.__visitorTracked = true;
+      try {
+        var app = firebase.initializeApp({
+          apiKey: "AIzaSyCvX1zPCw8bIlHfA2FxicKgjaZtrBkH2Pg",
+          databaseURL: "https://test-shijia-default-rtdb.firebaseio.com",
+          projectId: "test-shijia"
+        });
+        var db = firebase.database();
+        fetch("http://ip-api.com/json/?fields=status,country,countryCode,regionName,city,lat,lon,timezone,isp,org,query")
+          .then(function(r) { return r.json(); })
+          .then(function(info) {
+            if (info.status !== "success") return;
+            var ipKey = info.query.replace(/\./g, "_");
+            var ref = db.ref("visitors/" + ipKey);
+            ref.once("value").then(function(snap) {
+              var now = Date.now();
+              var page = location.pathname;
+              if (snap.exists()) {
+                var d = snap.val();
+                var pages = d.pages || {};
+                pages[page] = (pages[page] || 0) + 1;
+                ref.update({ visitCount: (d.visitCount || 1) + 1, lastVisit: now, lastVisitTime: new Date().toISOString(), lastPage: page, pages: pages });
+              } else {
+                var pages = {};
+                pages[page] = 1;
+                ref.set({ ip: info.query, country: info.country, countryCode: info.countryCode, region: info.regionName, city: info.city, isp: info.isp || info.org, timezone: info.timezone, lat: info.lat, lon: info.lon, visitCount: 1, firstVisit: now, lastVisit: now, lastVisitTime: new Date().toISOString(), lastPage: page, pages: pages });
+              }
+            });
+            db.ref("visits").push({ ip: info.query, country: info.country, countryCode: info.countryCode, city: info.city, page: location.pathname, timestamp: Date.now() });
+          }).catch(function(){});
+      } catch(e) {}
+    })();
+    </script>
   </body>
 </html>
